@@ -8,8 +8,10 @@ $harga = $_POST['harga'];
 $stock = $_POST['stock'];
 $kategori = $_POST['kategori'];
 
-$sql = "INSERT INTO products(nama, harga, stock, kategori) VALUES ('$nama', $harga, $stock, '$kategori')";
-$conn->query($sql);
+// Pengggunaan prepared statement untuk mencegah SQL Injection
+$sql = "INSERT INTO products(nama, harga, stock, kategori) VALUES (?, ?, ?, ?)";
+$stmt = $conn->prepare($sql);
+$stmt->execute([$nama, $harga, $stock, $kategori]);
 
 // Redirect ke home
 header("Location: /index.php");

@@ -2,16 +2,24 @@
 require __DIR__ . '/config/koneksi.php';
 require __DIR__ . '/templates/header.php';
 
-$search = $_GET['search'] ?? '';
-$where = "";
+$search = trim($_GET['search'] ?? '');
 
-if ($search !== "") {
-    $where = "WHERE nama LIKE '%$search%'";
+$sql    = "SELECT * FROM products";
+$param = '';
+
+if ($search !== '') {
+    $sql .= " WHERE nama LIKE ?";
+    $param = "%$search%";
 }
 
-// Ambil data produk dengan Query Building
-$sql = "SELECT * FROM products $where";
-$result = $conn->query($sql)->fetch_all(MYSQLI_ASSOC);
+$stmt = $conn->prepare($sql);
+
+if ($param) {
+    $stmt->bind_param('s', $param);
+}
+
+$stmt->execute();
+$result = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 ?>
 
 <!-- Content disini -->
@@ -28,13 +36,13 @@ $result = $conn->query($sql)->fetch_all(MYSQLI_ASSOC);
         <li class="card p-2">
             <img src="<?= $produk['gambar'] ?? $img_placeholder; ?>" alt="<?= $produk['gambar']; ?>" class="image-product"> <br>
             <div class="nama-harga">
-                <div class="nama"> <?= $produk['nama']; ?> </div>
+                <div class="nama"> <?= htmlspecialchars($produk['nama']); ?> </div>
                 <div class="harga"> Rp <?= $produk['harga']; ?> </div>
             </div>
             <div class="card-action">
                 <button class="btn btn-primary">Buy</button>
-                <a href="./produk/edit.php?id=<?= $produk['id']; ?>" class="btn btn-warning">Edit</a>
-                <form action="./produk/     .php" method="post">
+                <a href="/produk/edit.php?id=<?= $produk['id']; ?>" class="btn btn-warning">Edit</a>
+                <form action="./produk/delete.php" method="post">
                     <input type="hidden" name="id" value="<?= $produk['id']; ?>">
                     <button type="submit" class="btn btn-danger" onclick="return confirm('You sure?')">Delete</button>
                 </form>
