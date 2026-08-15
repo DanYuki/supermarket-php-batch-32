@@ -2,8 +2,15 @@
 require __DIR__ . '/config/koneksi.php';
 require __DIR__ . '/templates/header.php';
 
-// Ambil data produk
-$sql = "SELECT * FROM products";
+$search = $_GET['search'] ?? '';
+$where = "";
+
+if ($search !== "") {
+    $where = "WHERE nama LIKE '%$search%'";
+}
+
+// Ambil data produk dengan Query Building
+$sql = "SELECT * FROM products $where";
 $result = $conn->query($sql)->fetch_all(MYSQLI_ASSOC);
 ?>
 
@@ -11,14 +18,32 @@ $result = $conn->query($sql)->fetch_all(MYSQLI_ASSOC);
 <a href="/produk/create.php" class="btn btn-primary">+ Tambah Produk</a>
 
 <h1>Daftar Produk</h1>
+<form class="d-flex gap-5">
+    <input type="text" class="form-control" name="search" value="<?= $search; ?>">
+    <button type="submit" class="btn btn-primary">Search</button>
+</form>
 
-<ol>
+<ul class="product-list">
     <?php foreach ($result as $produk): ?>
-        <li>
-            <?= $produk['nama']; ?> - Rp <?= $produk['harga']; ?>
+        <li class="card p-2">
+            <img src="<?= $produk['gambar'] ?? $img_placeholder; ?>" alt="<?= $produk['gambar']; ?>" class="image-product"> <br>
+            <div class="nama-harga">
+                <div class="nama"> <?= $produk['nama']; ?> </div>
+                <div class="harga"> Rp <?= $produk['harga']; ?> </div>
+            </div>
+            <div class="card-action">
+                <button class="btn btn-primary">Buy</button>
+                <a href="./produk/edit.php?id=<?= $produk['id']; ?>" class="btn btn-warning">Edit</a>
+                <form action="./produk/     .php" method="post">
+                    <input type="hidden" name="id" value="<?= $produk['id']; ?>">
+                    <button type="submit" class="btn btn-danger" onclick="return confirm('You sure?')">Delete</button>
+                </form>
+            </div>
         </li>
     <?php endforeach; ?>
-</ol>
+</ul>
+
+
 
 <?php
 require __DIR__ . '/templates/footer.php';

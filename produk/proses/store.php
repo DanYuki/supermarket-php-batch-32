@@ -1,5 +1,5 @@
 <?php
-require __DIR__ . "/../config/koneksi.php";
+require __DIR__ . "/../../config/koneksi.php";
 
 var_dump($_POST);
 
