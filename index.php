@@ -2,6 +2,17 @@
 require __DIR__ . '/config/koneksi.php';
 require __DIR__ . '/templates/header.php';
 
+// Pagination
+$itemPerPage = 10;
+$page = (int) ($_GET['page'] ?? 1);
+$offset = ($page - 1) * 10;
+
+// Harusnya, hitung data tetap mempertimbangkan hasil search
+$total = $conn->query("SELECT COUNT(*) AS total FROM products")->fetch_assoc();
+$total = $total['total'];
+
+$pageCount = ceil($total / $itemPerPage);
+
 $search = trim($_GET['search'] ?? '');
 
 $sql    = "SELECT * FROM products";
@@ -12,7 +23,11 @@ if ($search !== '') {
     $param = "%$search%";
 }
 
+// Tambahkan query untuk limit
+$sql .= " LIMIT $itemPerPage OFFSET $offset";
+
 $stmt = $conn->prepare($sql);
+
 
 if ($param) {
     $stmt->bind_param('s', $param);
@@ -23,6 +38,7 @@ $result = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 ?>
 
 <!-- Content disini -->
+<p>Page saat ini: <?= $page; ?></p>
 <a href="/produk/create.php" class="btn btn-primary">+ Tambah Produk</a>
 
 <h1>Daftar Produk</h1>
@@ -50,6 +66,15 @@ $result = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
         </li>
     <?php endforeach; ?>
 </ul>
+
+<nav aria-label="Page navigation example">
+    <ul class="pagination">
+        <?php for ($i = 1; $i <= $pageCount; $i++): ?>
+            <li class="page-item"><a class="page-link <?= $page == $i ? 'active' : ''; ?>" href="?page=<?= $i; ?>"><?= $i; ?></a></li>
+        <?php endfor; ?>
+    </ul>
+</nav>
+
 
 
 
