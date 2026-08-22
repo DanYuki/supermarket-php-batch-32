@@ -6,6 +6,15 @@ require __DIR__ . '/../templates/header.php';
 <!-- CSS -->
 <link rel="stylesheet" href="/style.css">
 
+<?php if(isset($_SESSION['error'])): ?>
+    <div class="alert alert-danger">
+        <?= $_SESSION['error']; ?>
+    </div>
+<?php
+// Setelah di-display, unset/hilangkan pesan error
+unset($_SESSION['error']);
+endif;
+?>
 <form action="./proses/store.php" method="post" enctype="multipart/form-data" class="form-create container">
     <div class="d-flex col gap-3 my-2">
         <label for="nama" class="col-form-label col-3">Nama</label>

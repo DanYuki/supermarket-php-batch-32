@@ -3,6 +3,10 @@
 $img_placeholder = "https://www.svgrepo.com/show/508699/landscape-placeholder.svg";
 $list_kategori = ['Buah', 'Sayur', 'Minuman', 'Sembako', 'Sabun', 'Snack', 'Bumbu'];
 
+// Mulai session
+session_start();
+
+echo $_SESSION['nama_user'];
 ?>
 
 <!DOCTYPE html>

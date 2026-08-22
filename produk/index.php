@@ -5,6 +5,10 @@ require __DIR__ . '/../templates/header.php';
 
 $sql = "SELECT * FROM products";
 $result = $conn->query($sql)->fetch_all(MYSQLI_ASSOC);
+
+// session_start();
+$_SESSION['nama_user'] = "User baru";
+echo $_SESSION['nama_user'];
 ?>
 
 <!-- CSS -->

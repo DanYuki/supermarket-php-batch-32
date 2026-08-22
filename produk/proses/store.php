@@ -8,12 +8,14 @@ $stock = $_POST['stock'];
 $kategori = $_POST['kategori'];
 $file = $_FILES['image'];
 
+session_start();
 // Validasi image terlebih dahulu!
 
 // Cek apakah image ada atau tidak
 if (!isset($file) || $file['error'] === UPLOAD_ERR_NO_FILE) {
     // kembalikan user ke dalam halaman create
-    header("Location: {$_SERVER['HTTP_REFERER']}?message=no_image"); // gunakan session untuk flash error
+    $_SESSION['error'] = "File image tidak ada"; // Buat dulu session error untuk ditampilkan di depan
+    header("Location: {$_SERVER['HTTP_REFERER']}"); // gunakan session untuk flash error
 }
 
 // Validasi apakah yang dikirim image atau bukan

@@ -2,6 +2,8 @@
 require __DIR__ . '/config/koneksi.php';
 require __DIR__ . '/templates/header.php';
 
+$_SESSION['nama_user'] = 'Testing User';
+
 // Search
 
 $search = trim($_GET['search'] ?? '');
@@ -58,7 +60,7 @@ $produkList = '';
 // var_dump($result);
 ?>
 
-<h1 style="text-align: center; margin-bottom:30px; font-weight:bold;">Mau Beli Apa Hari Ini?</h1>
+<h1 style="text-align: center; margin-bottom:30px; font-weight:bold;">Mau Beli Apa Hari Ini <?= $_SESSION['nama_user']; ?>?</h1>
 <section>
     <div class="top-bar container">
         <!-- Page -->
