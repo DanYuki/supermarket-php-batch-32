@@ -1,11 +1,14 @@
 <?php
 require __DIR__ . '/../config/koneksi.php';
 require __DIR__ . '/../templates/header.php';
+
+cekLogin();
 ?>
 
 <!-- CSS -->
 <link rel="stylesheet" href="/style.css">
 
+<!-- Flashing error -->
 <?php if(isset($_SESSION['error'])): ?>
     <div class="alert alert-danger">
         <?= $_SESSION['error']; ?>
@@ -15,6 +18,7 @@ require __DIR__ . '/../templates/header.php';
 unset($_SESSION['error']);
 endif;
 ?>
+
 <form action="./proses/store.php" method="post" enctype="multipart/form-data" class="form-create container">
     <div class="d-flex col gap-3 my-2">
         <label for="nama" class="col-form-label col-3">Nama</label>

@@ -1,4 +1,12 @@
 <?php
+function cekLogin() {
+    // Cek apakah is_logged_in ada?
+    if (!isset($_SESSION['is_logged_in']) || !$_SESSION['is_logged_in']) {
+        header('Location: /login.php');
+        return;
+    }
+}
+
 
 $img_placeholder = "https://www.svgrepo.com/show/508699/landscape-placeholder.svg";
 $list_kategori = ['Buah', 'Sayur', 'Minuman', 'Sembako', 'Sabun', 'Snack', 'Bumbu'];
