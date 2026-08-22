@@ -2,124 +2,81 @@
 require __DIR__ . '/config/koneksi.php';
 require __DIR__ . '/templates/header.php';
 
-$_SESSION['nama_user'] = 'Testing User';
+// Pagination
+$itemPerPage = 10;
+$page = (int) ($_GET['page'] ?? 1);
+$offset = ($page - 1) * 10;
 
-// Search
+// Harusnya, hitung data tetap mempertimbangkan hasil search
+$total = $conn->query("SELECT COUNT(*) AS total FROM products")->fetch_assoc();
+$total = $total['total'];
+
+$pageCount = ceil($total / $itemPerPage);
 
 $search = trim($_GET['search'] ?? '');
-$where = '';
+
+$sql    = "SELECT * FROM products";
+$param = '';
 
 if ($search !== '') {
-    $where = "WHERE nama LIKE '%$search%'";
+    $sql .= " WHERE nama LIKE ?";
+    $param = "%$search%";
 }
 
-// Ambil Data Produk Keseluruhan
-$sql = "SELECT * FROM products $where";
-$result = $conn->query($sql)->fetch_all(MYSQLI_ASSOC);
+// Tambahkan query untuk limit
+$sql .= " LIMIT $itemPerPage OFFSET $offset";
 
-$sqlSearch = "SELECT COUNT(*) as Total FROM products $where";
-$resultSearch = $conn->query($sqlSearch)->fetch_assoc()['Total'];
+$stmt = $conn->prepare($sql);
 
-// Paginasi
 
-$perHalaman = 10;
-$halaman = (int) ($_GET['halaman'] ?? '');
-if ($halaman < 1) {
-    $halaman = 1;
+if ($param) {
+    $stmt->bind_param('s', $param);
 }
 
-$sqlTotal = "SELECT COUNT(*) as Total FROM products";
-$totalData = (int) $conn->query($sqlTotal)->fetch_assoc()['Total'];
-
-// $totalHalaman = ceil($totalData / $perHalaman);
-$totalHalaman = ($search = $search) ? ceil((int) $resultSearch / $perHalaman) : ceil($totalData / $perHalaman);
-$offset = '';
-if ($halaman >= 1) {
-    $offset = ($halaman - 1) * $perHalaman;
-} else {
-    $offset = 0;
-}
-
-// Ambil Data Produk yang sudah di LIMIT/OFFSET
-$sqlOffset = "SELECT * FROM products $where
-            LIMIT $perHalaman OFFSET $offset";
-$pageList = $conn->query($sqlOffset)->fetch_all(MYSQLI_ASSOC);
-
-$produkList = '';
-
-// if ($halaman >= 1) {
-//     $produkList = $pageList;
-// } else {
-//     $produkList = $result;
-// }
-
-($halaman >= 1) ? $produkList = $pageList : $produkList = $result;
-
-// echo (int) $resultSearch;
-
-// var_dump($result);
+$stmt->execute();
+$result = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 ?>
 
-<h1 style="text-align: center; margin-bottom:30px; font-weight:bold;">Mau Beli Apa Hari Ini <?= $_SESSION['nama_user']; ?>?</h1>
-<section>
-    <div class="top-bar container">
-        <!-- Page -->
-        <div class="page pagination">
-            <?php for ($i = 1; $i <= $totalHalaman; $i++): ?>
-                <a href="?halaman=<?= $i; ?>&search=<?= urlencode($search) ?>" name="halaman" class="page-link page-item <?= ($i === $halaman) ? 'active' : '' ?>"><?= $i; ?></a>
-            <?php endfor; ?>
-        </div>
+<!-- Content disini -->
+<p>Page saat ini: <?= $page; ?></p>
+<a href="/produk/create.php" class="btn btn-primary">+ Tambah Produk</a>
 
-        <!-- Search -->
-        <form action="" class="d-flex gap-3 search">
-            <!-- <input type="text" name="search" class="form-control" placeholder="Cari produk..."> -->
-            <!-- <a href="?halaman=1&search=<?= urlencode($search) ?>" type="submit" class="btn btn-primary" name="search">Search</a> -->
-            <input type="text" name="search" class="form-control" placeholder="Cari produk..." value="<?= $search; ?>">
-            <button type="submit" class="btn btn-primary">Search</button>
-        </form>
-    </div>
-    <div style="padding:0px 14px; align-items:end;">
-        <div style="background-color: #e3e3e3; height:2px; border-radius:5px; width:auto"></div>
-    </div>
+<h1>Daftar Produk</h1>
+<form class="d-flex gap-5">
+    <input type="text" class="form-control" name="search" value="<?= $search; ?>">
+    <button type="submit" class="btn btn-primary">Search</button>
+</form>
 
-    <!-- Produk Card -->
+<ul class="product-list">
+    <?php foreach ($result as $produk): ?>
+        <li class="card p-2">
+            <img src="<?= $produk['gambar'] ?? $img_placeholder; ?>" alt="<?= $produk['gambar']; ?>" class="image-product"> <br>
+            <div class="nama-harga">
+                <div class="nama"> <?= htmlspecialchars($produk['nama']); ?> </div>
+                <div class="harga"> Rp <?= $produk['harga']; ?> </div>
+            </div>
+            <div class="card-action">
+                <button class="btn btn-primary">Buy</button>
+                <a href="/produk/edit.php?id=<?= $produk['id']; ?>" class="btn btn-warning">Edit</a>
+                <form action="./produk/delete.php" method="post">
+                    <input type="hidden" name="id" value="<?= $produk['id']; ?>">
+                    <button type="submit" class="btn btn-danger" onclick="return confirm('You sure?')">Delete</button>
+                </form>
+            </div>
+        </li>
+    <?php endforeach; ?>
+</ul>
 
-    <div class="button-tambah-produk container">
-        <a href="/produk/create.php" class="btn btn-primary tambah-produk">+ Tambah Produk</a>
-    </div>
-
-    <ul class="product-list container">
-        <?php foreach ($produkList as $produk):
-            // Build image path here
-            $image_path = '';
-            if($produk['gambar'] != ''){
-                $image_path = "./assets/produk/{$produk['gambar']}";
-            } else {
-                $image_path = $img_placeholder;
-            }
-
-            // versi hemat
-            $image_path = $produk['gambar'] != NULL ? "./assets/produk/{$produk['gambar']}" : $img_placeholder;
-            
-            ?>
-            <li class="card p-2 gap-1">
-                <img src="<?= $image_path; ?>" alt="<?= htmlspecialchars($produk['nama']); ?>" class="image-product"><br>
-                <div class="nama-harga">
-                    <!-- Attack Defender -->
-                    <div class="nama" style="font-weight: bold; text-align:start"> <?= htmlspecialchars($produk['nama']); ?> </div>
-                    <div class="harga" style="font-weight:bold; color:green; margin-bottom:8px; text-align:end; min-width:max-content; margin-left:4px"> Rp <?= number_format($produk['harga'], 0, ",", "."); ?> </div>
-                </div>
-                <div class="card-action">
-                    <button class="btn btn-primary" style="width: 100%">Buy</button>
-                    <a href="/produk/edit.php?id=<?= $produk['id']; ?>" class="card-item btn btn-warning" style="width: 100%">Edit</a>
-                    <a href="/produk/proses/delete.php?id=<?= $produk['id']; ?>" class="card-item btn btn-danger" style="width: 100%">Delete</a>
-                </div>
-            </li>
-        <?php endforeach; ?>
+<nav aria-label="Page navigation example">
+    <ul class="pagination">
+        <?php for ($i = 1; $i <= $pageCount; $i++): ?>
+            <li class="page-item"><a class="page-link <?= $page == $i ? 'active' : ''; ?>" href="?page=<?= $i; ?>"><?= $i; ?></a></li>
+        <?php endfor; ?>
     </ul>
-</section>
+</nav>
 
-<!-- Next Tugas bikin card produk -->
+
+
 
 <?php
 require __DIR__ . '/templates/footer.php';
