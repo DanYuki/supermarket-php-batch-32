@@ -5,7 +5,6 @@ require __DIR__ . '/../templates/header.php';
 
 $sql = "SELECT * FROM products";
 $result = $conn->query($sql)->fetch_all(MYSQLI_ASSOC);
-
 ?>
 
 <!-- CSS -->
